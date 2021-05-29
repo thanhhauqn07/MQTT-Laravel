@@ -232,7 +232,12 @@ class MqttService
         $head[0] = chr($cmd);
         $head .= $this->setmsglength($i);
         fwrite($this->socket, $head, strlen($head));
-        fwrite($this->socket, $buffer, $i);
+        for ($written = 0; $written < strlen($buffer); $written += $fwrite) {
+            $fwrite = fwrite($this->socket, substr($buffer, $written, 1));
+            if ($fwrite === false) {
+                return $written;
+            }
+        }
     }
 
     /* message: processes a received topic */
